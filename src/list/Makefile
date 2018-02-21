@@ -23,3 +23,4 @@ re: fclean all
 test: all
 	$(CC) $(CFLAGS) ../../test/testlist.c -L../../lib -llist -lmy
 	./a.out
+	rm -f a.out
