@@ -72,7 +72,10 @@ void add_node_at(struct s_node* node, struct s_node** head, int n){
 	if(node == NULL){//inserting a NULL pointer or  NULL node
 		return;
 	} else if(head == NULL || *head == NULL){//if head is null or points to null then 
-		head = &node;
+		return;
+		// struct s_node* headNode = new_node(NULL, NULL, NULL);
+		// head = &headNode;
+		// head = &node;
 	} else if(n == 0){//reduces to add node as head
 		add_node(node, head);
 	} else {//no NULLs 
@@ -425,83 +428,3 @@ void print_string(struct s_node* node){
 	my_str((char*)node->elem);
 }
 
-
-// int main(){
-// 	//struct s_node *next, *prev;
-// 	int num = 24;
-// 	int* numPtr = &num;
-
-// 	int num2 = 48;
-// 	int* numPtr2 = &num2;
-
-// 	int num3 = 100;
-// 	int*numPtr3 = &num3;
-
-// 	int num4 = 64;
-// 	int* numPtr4 = &num4;
-
-// 	struct s_node* first = new_node(numPtr, NULL, NULL);
-// 	struct s_node** head = &first;
-// 	add_elem(numPtr2, head);
-// 	add_elem(numPtr3, head);
-// 	add_elem(numPtr4, head);	
-
-
-// 	my_int(*(int*)(*head)->elem);
-// 	my_int(*(int*)(*head)->next->elem);
-// 	my_int(*(int*)(*head)->next->next->elem);
-// 	my_int(*(int*)(*head)->next->next->next->elem);
-// 	// my_str("\n");
-// 	//struct s_node* removeNode = (*head)->next;
-// 	//remove_node(head);
-// 	//my_int(count_s_nodes(*head));
-// 	// remove_node_at(head, -1);
-// 	// remove_last(head);
-// 	// remove_last(head);
-// 	// remove_last(head);
-// 	my_str("\n");
-// 	//my_int(count_s_nodes(*head));
-// 	//my_int(*(int*)node_at(*head, 8)->elem);
-// 	// empty_list(head);
-// 	// my_int(count_s_nodes(*head));
-// 	// struct s_node* last = (*head)->next->next;
-// 	// my_int(*(int*)(last->elem));
-// 	// my_int(*(int*)(last->prev->elem));
-// 	// my_int(*(int*)(last->prev->prev->elem));
-// 	// my_int(*(int*)(last->prev->prev->prev->elem));
-// 	//my_int(*(int*)(*head)->elem);
-// 	//my_int(*(int*)(*head)->next->elem);
-// 	//my_int(*(int*)(*head)->next->next->elem);
-// 	//my_int(*(int*)(*head)->next->next->next->elem);
-// 	//my_int(*(int*)elem_at(*head, 8));
-// 	traverse_int(*head);
-// 	my_str("\n");
-// 	// my_st(r"\n");
-// 	// traverse_char(*head);
-// 	// my_str("\n");
-// 	// traverse_string(*head);
-// 	debug_int(*head);
-// 	my_str("\n");
-// 	debug_char(*head);
-// 	my_str("\n");
-// 	debug_string(*head);
-// 	my_str("\n");
-// 	print_string(*head);
-// 	print_string((*head)->next);
-// 	my_str("\n");
-// 	remove_last(head);
-// 	//remove_last(head);
-// 	debug_int(*head);
-// 	my_str("\n");
-// 	remove_last(head);
-// 	debug_int(*head);
-// 	my_str("\n");
-// 	remove_last(head);
-// 	debug_int(*head);
-// 	my_str("\n");
-// 	remove_last(head);
-// 	debug_int(*head);
-// 	my_str("\n");
-// 	print_int(*head);
-
-//}

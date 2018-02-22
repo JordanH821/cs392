@@ -14,7 +14,6 @@ clean:
 	rm -f $(OBJS)
 
 fclean: clean
-	rm -f $(OBJS)
 	rm -f ../../lib/liblist.a
 	rm -f a.out
 
