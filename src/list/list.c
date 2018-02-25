@@ -301,7 +301,7 @@ void debug_int(struct s_node* head){
 		return;
 	} else {
 		my_int(*(int*)currNode->elem);
-		my_str(")");
+		my_str("), ");
 	}
 	//currNode = currNode->next;
 	while(currNode->next != NULL){
@@ -311,7 +311,7 @@ void debug_int(struct s_node* head){
 		my_int(*(int*)currNode->elem);
 		my_str(" -> ");
 		my_int(*(int*)currNode->next->elem);
-		my_str(") ");
+		my_str("), ");
 		currNode = currNode->next;
 	}
 	my_str("(");
@@ -339,7 +339,7 @@ void debug_char(struct s_node* head){
 		return;
 	} else {
 		my_char(*(char*)currNode->elem);
-		my_str(")");
+		my_str("), ");
 	}
 	//currNode = currNode->next;
 	while(currNode->next != NULL){
@@ -349,7 +349,7 @@ void debug_char(struct s_node* head){
 		my_char(*(char*)currNode->elem);
 		my_str(" -> ");
 		my_char(*(char*)currNode->next->elem);
-		my_str(") ");
+		my_str("), ");
 		currNode = currNode->next;
 	}
 	my_str("(");
@@ -377,7 +377,7 @@ void debug_string(struct s_node* head){
 		return;
 	} else {
 		my_str((char*)currNode->elem);
-		my_str(")");
+		my_str("), ");
 	}
 	//currNode = currNode->next;
 	while(currNode->next != NULL){
@@ -387,7 +387,7 @@ void debug_string(struct s_node* head){
 		my_str((char*)currNode->elem);
 		my_str(" -> ");
 		my_str((char*)currNode->next->elem);
-		my_str(") ");
+		my_str("), ");
 		currNode = currNode->next;
 	}
 	my_str("(");
