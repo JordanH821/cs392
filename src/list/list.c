@@ -20,8 +20,10 @@ struct s_node* new_node(void* elem, struct s_node* next, struct s_node* previous
 void add_node(struct s_node* node, struct s_node** head){
 	if(node == NULL || node->elem == NULL){//node is null or null elem
 		return;
-	} else if(head == NULL || *head == NULL){//empty or no list
-		head = &node;
+	} else if(head == NULL){
+		return;
+	} else if(*head == NULL){//empty or no list
+		*head = node;
 	} else {//list is not empty
 		node->next = *head;
 		(*head)->prev = node;
@@ -71,11 +73,12 @@ void append(struct s_node* node, struct s_node** head){
 void add_node_at(struct s_node* node, struct s_node** head, int n){
 	if(node == NULL){//inserting a NULL pointer or  NULL node
 		return;
-	} else if(head == NULL || *head == NULL){//if head is null or points to null then 
+	} else if(head == NULL){
 		return;
+	} else if(*head == NULL){//if head is null or points to null then 
 		// struct s_node* headNode = new_node(NULL, NULL, NULL);
 		// head = &headNode;
-		// head = &node;
+		*head = node;
 	} else if(n == 0){//reduces to add node as head
 		add_node(node, head);
 	} else {//no NULLs 
@@ -116,24 +119,24 @@ void* remove_node(struct s_node** node){
 			//WHAT TO DO WITH HEAD POINTER
 			void* ret = (*node)->elem;
 			(*node)->next->prev = NULL;
-			struct s_node* newNode = (*node)->next; 
+			//struct s_node* newNode = (*node)->next; 
 			free(*node);
-			*node = newNode;
+			*node = NULL;
 			return ret;
 		} else if((*node)->next == NULL){//node is tail
 			void* ret = (*node)->elem;
 			(*node)->prev->next = NULL;
-			struct s_node* newNode = (*node)->next; 
+			//struct s_node* newNode = (*node)->next; 
 			free(*node);
-			*node = newNode;
+			*node = NULL;
 			return ret;
-		} else {
+		} else {//middle of list
 			void* ret = (*node)->elem;
 			((*node)->next)->prev = (*node)->prev;
 			((*node)->prev)->next = (*node)->next;
-			struct s_node* newNode = (*node)->next; 
+			//struct s_node* newNode = (*node)->next; 
 			free(*node);
-			*node = newNode;
+			*node = NULL;
 			return ret;
 
 		}

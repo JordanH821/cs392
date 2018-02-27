@@ -70,5 +70,23 @@ int main(){
 	my_str("\n");
 	my_str(">>>>>Strings pass all test cases!<<<<<");
 	my_str("\n");
+	struct s_node* node1 = new_node("BELLBELL", NULL, NULL);
+	struct s_node** segHead = &node1;
+	struct s_node* node2 = new_node("TacoTaco", NULL, NULL);
+	struct s_node* node3 = new_node("BEEPBEEP", NULL, NULL);
+	//remove_last(segHead);
+	add_node(node2, segHead);
+	add_node(node3, segHead);
+	//my_str("taco");
+	//struct s_node* addNode = new_node("TacoTaco", NULL, NULL);
+	//my_str((*segHead)->elem);
+	debug_string(*segHead);
+	remove_node(&node2);
+	my_str("\n");
+	debug_string(*segHead);
+	remove_last(segHead);
+	my_str("\n");
+	debug_string(*segHead);
+	my_str("\n");
 	return 0;
 }
