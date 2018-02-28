@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <string.h>
-#include <signal.h>
 #include <sys/wait.h>
-#include <sys/resource.h>
 #include "my.h"
 int main(int argc, char **argv){
 	if(argc == 1){

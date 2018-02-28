@@ -53,7 +53,7 @@ void append(struct s_node* node, struct s_node** head){
 	if(node == NULL || node->elem == NULL){
 		return;
 	} else if(head == NULL || *head == NULL){//head doesnt exist so the appended node becomes head
-		head = &node;
+		*head = node;
 	} else {//no null catches, appends to list
 		struct s_node* lastNode = *head;
 		while(lastNode->next != NULL){
@@ -119,9 +119,9 @@ void* remove_node(struct s_node** node){
 			//WHAT TO DO WITH HEAD POINTER
 			void* ret = (*node)->elem;
 			(*node)->next->prev = NULL;
-			//struct s_node* newNode = (*node)->next; 
+			struct s_node* next = (*node)->next; 
 			free(*node);
-			*node = NULL;
+			*node = next;
 			return ret;
 		} else if((*node)->next == NULL){//node is tail
 			void* ret = (*node)->elem;
