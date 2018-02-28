@@ -1,4 +1,5 @@
 #include <sys/wait.h>
+#include <stdio.h>
 #include "my.h"
 int main(int argc, char **argv){
 	if(argc == 1){
@@ -8,15 +9,15 @@ int main(int argc, char **argv){
 	pid_t pidChild;
 	pid_t pidGChild;
 	int p_to_c[2];
-	char buff[101];
 
 	pipe(p_to_c);
 
 	if ((pidChild = fork())< 0){
 		//error checking
+		perror("Initial fork was unsuccessful");
+		exit(0);
 	} else if(pidChild == 0){
 		//child
-		pidChild = getpid();
 		//code for child to gc pipe
 		int c_to_gc[2];
 		pipe(c_to_gc);
@@ -37,6 +38,8 @@ int main(int argc, char **argv){
 		//fork grandchild
 		if ((pidGChild = fork())< 0){
 			//error in grandchild
+			perror("Grandchild fork was unsuccessful");
+			exit(0);
 		} else if(pidGChild == 0){
 			//grandchild
 			my_str("\n");
@@ -51,7 +54,7 @@ int main(int argc, char **argv){
 		exit(0);
 	} else {
 		//parent 
-		char* buff = my_vect2str(argv);
+		char* buff = my_vect2str(&argv[1]);
 		my_str("Parent: ");
 		my_str(buff);
 		write(p_to_c[1], buff, 101);
