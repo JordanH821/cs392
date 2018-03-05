@@ -34,6 +34,7 @@ char* my_strnconcat(char *a, char *b, int n);
 char* my_strnconcat(char *a, char *b, int n); 
 int my_atoi(char *n);
 char* my_vect2str(char **x);
+char** my_str2vect(char*);
 
 
 #endif
