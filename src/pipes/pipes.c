@@ -48,6 +48,7 @@ int main(int argc, char **argv){
 			my_str("Grandchild: ");
 			my_revstr(buffRev);
 			my_str(buffRev);
+			my_str("\n");
 			exit(0);
 		}
 		wait(NULL);

@@ -1,36 +1,62 @@
 #include <sys/wait.h>
 #include <stdio.h>
+#include <string.h>
+#include <signal.h>
 #include "my.h"
-int main(int argc, char **argv){
+pid_t pidChild;
 
+void sigIntHandler(int sig){
+	if(kill(pidChild, 0) == 0){
+		kill(pidChild, 9);
+		my_str("Child is killed\n");
+		return;
+	}
+}
+
+int main(int argc, char **argv){
+	//pid_t pidChild;
+	signal(SIGINT, sigIntHandler);
+	int p_to_c[2];
+	pipe(p_to_c);
+	char* currentPath = malloc(1024);
+	currentPath = getcwd(NULL, 0);
 	while(1){
-		pid_t pidChild;
-		int p_to_c[2];
-		pipe(p_to_c);
-		if ((pidChild = fork())< 0){
-			//error checking
-			perror("Initial fork was unsuccessful");
-			exit(0);
-		} else if(pidChild == 0){
-			//child
-			char* execBuff = malloc(1024);
-			read(p_to_c[0], execBuff, 1024);
-			char** args = my_str2vect(execBuff);
-			free(execBuff);
-			execvp(args[0], args);
-		} else {
 			//parent
 			char* buff = malloc(1024);
 			my_str("MINISHELL: ");
-			my_str(getcwd(buff, 1024));
-			my_str(" $:");
-			free(buff);
+			my_str(currentPath);
+			my_str(" $: \0");
 			char* commandsBuff = malloc(1024);
 			read(0, commandsBuff, 1024);
-			write(p_to_c[1], commandsBuff, 1024);	
-			free(commandsBuff);
+			char** stuff = my_str2vect(commandsBuff);
+			if(my_strcmp(stuff[0], "cd") == 0){
+				if(chdir(stuff[1]) < 0){
+					my_str("The directory \'");
+					my_str(stuff[1]);
+					my_str("\' does not exist.\n");
+				}
+				currentPath = getcwd(NULL, 0);
+				memset(&buff[0], '\0', 1024);
+				free(buff);
+			} else if(my_strcmp(stuff[0], "exit") == 0){
+				exit(0);
+				return 0;
+			} else if(my_strcmp(stuff[0], "help") == 0){
+				my_str("HELP ME LORD\n");
+			} else {
+				if((pidChild = fork()) < 0){
+					perror("DAS BROKE\n");
+					exit(0);
+				} else if(pidChild == 0){
+					// my_str("\t");
+					if(execvp(stuff[0], stuff) < 0){
+						my_str("YOU DID SOMETHING WRONG\n");
+						exit(0);	
+					}
+				}
+				wait(NULL);
+			}
 		}
-	}
 	return 0;
 }
 	
