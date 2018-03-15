@@ -3,10 +3,10 @@
 #include <string.h>
 #include <signal.h>
 #include "my.h"
-pid_t pidChild;
+pid_t pidChild = -1;
 
 void sigIntHandler(int sig){
-	if(kill(pidChild, 0) == 0){
+	if(pidChild != -1 && kill(pidChild, 0) == 0){
 		kill(pidChild, 9);
 		my_str("Child is killed\n");
 		return;
@@ -59,4 +59,4 @@ int main(int argc, char **argv){
 		}
 	return 0;
 }
-	
+
