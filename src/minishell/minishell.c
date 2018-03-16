@@ -22,13 +22,14 @@ int main(int argc, char **argv){
 	currentPath = getcwd(NULL, 0);
 	while(1){
 			//parent
-			char* buff = malloc(1024);
-			my_str("MINISHELL: ");
+			my_str("MINISHELL: ");	
 			my_str(currentPath);
 			my_str(" $: \0");
 			char* commandsBuff = malloc(1024);
 			read(0, commandsBuff, 1024);
 			char** stuff = my_str2vect(commandsBuff);
+			free(commandsBuff);
+			commandsBuff = NULL;
 			if(my_strcmp(stuff[0], "cd") == 0){
 				if(chdir(stuff[1]) < 0){
 					my_str("The directory \'");
@@ -36,13 +37,12 @@ int main(int argc, char **argv){
 					my_str("\' does not exist.\n");
 				}
 				currentPath = getcwd(NULL, 0);
-				memset(&buff[0], '\0', 1024);
-				free(buff);
 			} else if(my_strcmp(stuff[0], "exit") == 0){
+				my_str("Bye");
 				exit(0);
 				return 0;
 			} else if(my_strcmp(stuff[0], "help") == 0){
-				my_str("HELP ME LORD\n");
+				my_str("HELP\ncd - change directory\nhelp - get this message\nexit - exit MINISHELL\n");
 			} else {
 				if((pidChild = fork()) < 0){
 					perror("DAS BROKE\n");
