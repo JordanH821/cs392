@@ -13,12 +13,18 @@ void sigIntHandler(int sig){
 	}
 }
 
+void bufferSet(char* buff){
+	for(int i = 0; i < my_strlen(buff); i++){
+		buff[i] = '\0';
+	}
+}
+
 int main(int argc, char **argv){
 	//pid_t pidChild;
 	signal(SIGINT, sigIntHandler);
 	int p_to_c[2];
 	pipe(p_to_c);
-	char* currentPath = malloc(1024);
+	char* currentPath;
 	currentPath = getcwd(NULL, 0);
 	while(1){
 			//parent
@@ -26,6 +32,7 @@ int main(int argc, char **argv){
 			my_str(currentPath);
 			my_str(" $: \0");
 			char* commandsBuff = malloc(1024);
+			bufferSet(commandsBuff);
 			read(0, commandsBuff, 1024);
 			char** stuff = my_str2vect(commandsBuff);
 			free(commandsBuff);
