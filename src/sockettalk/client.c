@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         }
     } else {//parent used to write
         while(1){
-            bzero(message, 1024);
+            memset(message, '\0', 1024);
             read(0, message, 1024);
             if(my_strncmp(message, "/exit", 5) == 0){
                 write(sockfd, message, my_strlen(message));

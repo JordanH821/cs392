@@ -11,15 +11,43 @@
 #include <errno.h>
 #include "my.h"
 
-void sendToAllClients(struct pollfd clients[], char* name, char* message, int size){
+void sendToAllClients(struct pollfd clients[], char* name, char* message, int size, int meBit){
     char formattedMessage[2048];
     memset(formattedMessage, '\0', 2048);
     my_strncpy(formattedMessage, name, my_strlen(name) - 1);
-    my_strcat(formattedMessage, " : ");
-    my_strcat(formattedMessage, message);
+    if(meBit){
+        my_strcat(formattedMessage, " ");
+        my_strcat(formattedMessage, &message[4]);
+    } else {
+        my_strcat(formattedMessage, " : ");
+        my_strcat(formattedMessage, message);
+    }
+    my_str(formattedMessage);
+    my_str("\n");
     for(int c = 1; c < size; c++){
         send(clients[c].fd, formattedMessage, my_strlen(formattedMessage), 0);
     }
+}
+
+char* nameCleaner(char* name){
+    char* cleanName = (char*)malloc(my_strlen(name) + 1);
+    int j = 0;
+    for(int i = 0; i < my_strlen(name); i++){
+        if(name[i] != ' '){
+            cleanName[j] = name[i];
+            j++;
+        }
+    }
+    cleanName[j+1] = '\0';
+    return cleanName;
+}
+
+void reallocHelp(struct pollfd* fds, char** names, int userLimit){
+    for(int i = (userLimit / 2); i < userLimit; i++){
+        names[i] = (char*)malloc(1024);
+        memset(names[i], '\0', 1024);
+    }
+    memset(&fds[userLimit/2 + 1], 0, sizeof(fds[userLimit/2 + 1]));
 }
 
 int main(int argc, char* argv[]){
@@ -31,12 +59,18 @@ int main(int argc, char* argv[]){
     int rc, on = 1;
     int listen_sd = -1, new_sd = -1;
     int end_server = 0, compress_array = 0; //0 being false
-    int close_conn;
+    //int close_conn;
     char* message = malloc(2048);
     struct sockaddr_in addr;
-    struct pollfd fds[10];
-    char names[10][1024]; //allocate memory for the user names
-    memset(names, '\0', 1024 * 10);
+    struct pollfd* fds = malloc(sizeof(int) * 3);
+    char** names; //allocate memory for the user names
+    names = malloc(3 * sizeof(char*));
+    for(int i = 0; i < 3; i++){
+        names[i] = (char*)malloc(1024);
+        memset(names[i], '\0', 1024);
+    }
+    //memset(names, '\0', 1024 * 10);
+    int userLimit = 3;
     //struct pollfd fds[] = (struct pollfd*)malloc(10 * sizeof(int)); //mallocs memory for 10 client file descriptors
     int nfds = 1, current_size = 0, i, j;
 
@@ -79,7 +113,7 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
-    memset(fds, 0, sizeof(fds));
+    memset(fds, 0, sizeof(*fds));
 
     fds[0].fd = listen_sd;
     fds[0].events = POLLIN;
@@ -95,6 +129,10 @@ int main(int argc, char* argv[]){
 
         current_size = nfds;
         for(i = 0; i < current_size; i++){
+
+            if(fds[i].fd == -1){
+                continue;
+            }
             if(fds[i].revents == 0){
                 continue;
             }
@@ -106,7 +144,7 @@ int main(int argc, char* argv[]){
             }
 
             if(fds[i].fd == listen_sd){
-                my_str("new client(s) connecting");
+                my_str("new client(s) connecting\n");
                 do{
                     new_sd = accept(listen_sd, NULL, NULL);
                     if(new_sd <  0){
@@ -116,39 +154,64 @@ int main(int argc, char* argv[]){
                         }
                         break;
                     }
+                    if(nfds >= userLimit - 1){
+                        my_str("User limit reached, reallocing memory\n");
+                        userLimit *= 2;
+                        names = realloc(names, userLimit * sizeof(char*));
+                        fds = realloc(fds, userLimit * sizeof(int));
+                        reallocHelp(fds, names, userLimit);
+                    }
                     fds[nfds].fd = new_sd;
                     fds[nfds].events = POLLIN;
                     nfds++;
                 } while(new_sd != -1);
             } else {
-                my_str("reading from fds > 0");
-                close_conn = 0; //set to false
+                my_str("reading from fds > 0\n");
+                //close_conn = 0; //set to false
                 memset(message, '\0', 1024);
-                rc = recv(fds[i].fd, message, sizeof(message), 0);
+                rc = recv(fds[i].fd, message, 1024, 0);
+                my_str("\n");
+                my_str(message);
+                my_str("\n");
                 if(rc < 0){
                     if(errno != EWOULDBLOCK){
                         perror("recv() failed - ln112");
-                        close_conn = 1;
+                        //close_conn = 1;
+
                     }
                     break;
                 }
                 if(rc == 0){
-                    my_str("Connection closed");
-                    close_conn = 1;
-                    break;
-                }
-                my_str("HELP");
-                if(my_strncmp(names[i], "\0", 1) == 0){//name not set
-                    my_strcpy(names[i], message);
-                } else {
-                    sendToAllClients(fds, names[i], message, nfds);
-                }
-
-                if(close_conn){
+                    my_str("Connection closed\n");
                     close(fds[i].fd);
                     fds[i].fd = -1;
                     compress_array = 1;
+                    continue;
                 }
+                if(my_strncmp(names[i], "\0", 1) == 0){//name not set
+                    my_strcpy(names[i], nameCleaner(message));
+                } else if(my_strncmp(message, "/me", 3) == 0){
+                    sendToAllClients(fds, names[i], message, nfds, 1);
+                } else if(my_strncmp(message, "/nick", 5) == 0){
+                    memset(names[i], '\0', 1024);
+                    my_strcpy(names[i], nameCleaner(&message[6]));//NEED TO FORMAT USERNAME
+                } else if(my_strncmp(message, "/exit", 5) == 0){
+                    my_str("Connection closed with ");
+                    my_str(names[i]);
+                    my_str("\n");
+                    close(fds[i].fd);
+                    fds[i].fd = -1;
+                    compress_array = 1;
+                    continue;
+                }else {
+                    sendToAllClients(fds, names[i], message, nfds, 0);
+                }
+
+                // if(close_conn){
+                //     close(fds[i].fd);
+                //     fds[i].fd = -1;
+                //     compress_array = 1;
+                // }
             }
         }
         if(compress_array){
@@ -157,6 +220,9 @@ int main(int argc, char* argv[]){
                 if(fds[i].fd == -1){
                     for(j = i; j < nfds; j++){
                         fds[j].fd = fds[j+1].fd;
+                        memset(names[j], '\0', 1024);
+                        my_strcpy(names[j], names[j+1]);
+                        memset(names[j+1], '\0', 1024);
                     }
                     nfds--;
                 }
