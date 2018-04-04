@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     if(connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
         error("ERROR connecting");
     }
-    my_str("Please enter a username");
+    my_str("Please enter a username: ");
     read(0, nameBuff, 1024);
     nameBuffHolder[0] = nameBuff;
     nameBuffHolder[1] = NULL;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         while(1){
             bzero(message, 1024);
             read(0, message, 1024);
-            if(my_strcmp(message, "/exit") == 0){
+            if(my_strncmp(message, "/exit", 5) == 0){
                 write(sockfd, message, my_strlen(message));
                 kill(pid, SIGKILL);
                 exit(0);
