@@ -20,14 +20,16 @@ int main(int argc, char *argv[])
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-    char* nameBuff = malloc(1024);
-    char* message = malloc(1024);
-    char* serverMessage = malloc(2048);
-    char** nameBuffHolder = malloc(1048);
+    char* nameBuff = malloc(1025);
+    char* message = malloc(1025);
+    char* serverMessage = malloc(2053);
     if (argc < 3) {
        my_str("Usage: ./client <host> <port>");
        exit(0);
     }
+    memset(nameBuff, '\0',1025);
+    my_str("Please enter a username: ");
+    read(0, nameBuff, 1024);
     portno = atoi(argv[2]);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
@@ -46,14 +48,7 @@ int main(int argc, char *argv[])
     if(connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
         error("ERROR connecting");
     }
-    my_str("Please enter a username: ");
-    read(0, nameBuff, 1024);
-    nameBuffHolder[0] = nameBuff;
-    nameBuffHolder[1] = NULL;
-    nameBuff = my_vect2str(nameBuffHolder);
-    free(nameBuffHolder);
-    nameBuffHolder = NULL;
-    n = write(sockfd,nameBuff,my_strlen(nameBuff));
+    n = write(sockfd, nameBuff, my_strlen(nameBuff));
     free(nameBuff);
     nameBuff = NULL;
     if (n < 0) 
@@ -63,17 +58,18 @@ int main(int argc, char *argv[])
         error("Fork failed");
     } else if(pid == 0){//child used to read
         while(1){
-            bzero(serverMessage, 2048);
-            read(sockfd, serverMessage, 2048);
+            bzero(serverMessage, 2053);
+            read(sockfd, serverMessage, 2053);
             my_str(serverMessage);
         }
     } else {//parent used to write
         while(1){
-            memset(message, '\0', 1024);
+            memset(message, '\0', 1025);
             read(0, message, 1024);
             if(my_strncmp(message, "/exit", 5) == 0){
                 write(sockfd, message, my_strlen(message));
                 kill(pid, SIGKILL);
+                close(sockfd);
                 exit(0);
             }
             n = write(sockfd, message, my_strlen(message));

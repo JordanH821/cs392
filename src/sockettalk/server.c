@@ -12,12 +12,15 @@
 #include "my.h"
 
 void sendToAllClients(struct pollfd clients[], char* name, char* message, int size, int meBit){
-    char formattedMessage[2048];
-    memset(formattedMessage, '\0', 2048);
-    my_strncpy(formattedMessage, name, my_strlen(name) - 1);
+    char formattedMessage[2053];
+    memset(formattedMessage, '\0', 2053);
+    my_strncpy(formattedMessage, name, my_strlen(name));
     if(meBit){
         my_strcat(formattedMessage, " ");
         my_strcat(formattedMessage, &message[4]);
+        if(message[4] == '\0'){
+            my_strcat(formattedMessage, "\n");
+        }
     } else {
         my_strcat(formattedMessage, " : ");
         my_strcat(formattedMessage, message);
@@ -32,8 +35,9 @@ void sendToAllClients(struct pollfd clients[], char* name, char* message, int si
 char* nameCleaner(char* name){
     char* cleanName = (char*)malloc(my_strlen(name) + 1);
     int j = 0;
+    char* illegal = " \n\t";
     for(int i = 0; i < my_strlen(name); i++){
-        if(name[i] != ' '){
+        if(my_strfind(illegal, name[i]) == NULL){
             cleanName[j] = name[i];
             j++;
         }
@@ -44,8 +48,8 @@ char* nameCleaner(char* name){
 
 void reallocHelp(struct pollfd* fds, char** names, int userLimit){
     for(int i = (userLimit / 2); i < userLimit; i++){
-        names[i] = (char*)malloc(1024);
-        memset(names[i], '\0', 1024);
+        names[i] = (char*)malloc(1025);
+        memset(names[i], '\0', 1025);
     }
     memset(&fds[userLimit/2 + 1], 0, sizeof(fds[userLimit/2 + 1]));
 }
@@ -60,16 +64,16 @@ int main(int argc, char* argv[]){
     int listen_sd = -1, new_sd = -1;
     int end_server = 0, compress_array = 0; //0 being false
     //int close_conn;
-    char* message = malloc(2048);
+    char* message = malloc(2053);
     struct sockaddr_in addr;
     struct pollfd* fds = malloc(sizeof(int) * 3);
     char** names; //allocate memory for the user names
     names = malloc(3 * sizeof(char*));
     for(int i = 0; i < 3; i++){
-        names[i] = (char*)malloc(1024);
-        memset(names[i], '\0', 1024);
+        names[i] = (char*)malloc(1025);
+        memset(names[i], '\0', 1025);
     }
-    //memset(names, '\0', 1024 * 10);
+    //memset(names, '\0', 1025 * 10);
     int userLimit = 3;
     //struct pollfd fds[] = (struct pollfd*)malloc(10 * sizeof(int)); //mallocs memory for 10 client file descriptors
     int nfds = 1, current_size = 0, i, j;
@@ -168,7 +172,7 @@ int main(int argc, char* argv[]){
             } else {
                 my_str("reading from fds > 0\n");
                 //close_conn = 0; //set to false
-                memset(message, '\0', 1024);
+                memset(message, '\0', 1025);
                 rc = recv(fds[i].fd, message, 1024, 0);
                 my_str("\n");
                 my_str(message);
@@ -189,11 +193,18 @@ int main(int argc, char* argv[]){
                     continue;
                 }
                 if(my_strncmp(names[i], "\0", 1) == 0){//name not set
-                    my_strcpy(names[i], nameCleaner(message));
+                    char* cleanName = nameCleaner(message);
+                    if(my_strlen(cleanName) == 0){
+                        my_strcpy(names[i], "BlankName");
+                        char* blankNameError = "You have entered a username of just white space. Update with \'/me <new name>\'.\n";
+                        send(fds[i].fd, blankNameError, my_strlen(blankNameError), 0);
+                    } else{
+                        my_strcpy(names[i], nameCleaner(message));
+                    }
                 } else if(my_strncmp(message, "/me", 3) == 0){
                     sendToAllClients(fds, names[i], message, nfds, 1);
                 } else if(my_strncmp(message, "/nick", 5) == 0){
-                    memset(names[i], '\0', 1024);
+                    memset(names[i], '\0', 1025);
                     my_strcpy(names[i], nameCleaner(&message[6]));//NEED TO FORMAT USERNAME
                 } else if(my_strncmp(message, "/exit", 5) == 0){
                     my_str("Connection closed with ");
@@ -203,7 +214,12 @@ int main(int argc, char* argv[]){
                     fds[i].fd = -1;
                     compress_array = 1;
                     continue;
-                }else {
+                } else if(my_strncmp(message, "/", 1) == 0){
+                    my_str(names[i]);
+                    my_str(" used an invalid special command.\n");
+                    char* errorMessage = "That is an invalid special command.\n";
+                    send(fds[i].fd, errorMessage, my_strlen(errorMessage), 0);
+                } else {
                     sendToAllClients(fds, names[i], message, nfds, 0);
                 }
 
@@ -220,9 +236,9 @@ int main(int argc, char* argv[]){
                 if(fds[i].fd == -1){
                     for(j = i; j < nfds; j++){
                         fds[j].fd = fds[j+1].fd;
-                        memset(names[j], '\0', 1024);
+                        memset(names[j], '\0', 1025);
                         my_strcpy(names[j], names[j+1]);
-                        memset(names[j+1], '\0', 1024);
+                        memset(names[j+1], '\0', 1025);
                     }
                     nfds--;
                 }
