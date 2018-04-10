@@ -4,33 +4,40 @@
 int charNum, currX, currY, maxX, maxY, maxStringLength, filesPerLine, numberOfFiles;
 char** files;
 
+
+void fileSelect(){
+
+}
+
 void selectDisplay(){
 	clear();
 	refresh();
 	getmaxyx(curscr, maxY, maxX);
 	filesPerLine = maxX / (maxStringLength + 1);
+	if(numberOfFiles >= filesPerLine * (maxY + 1) - 2){
+		addstr("Window too small, please enlarge it");
+		refresh();
+		return;
+	}
+
 	getyx(curscr, currX, currY);
-	charNum = 0;
-	int filesThisLine = 0;
 	for(int i = 0; i < numberOfFiles; i++){
-		if(filesThisLine < filesPerLine){
-			for(int j = 0; j < maxStringLength - my_strlen(files[i]); j++){
-				addstr(" ");
-			}
-			addstr(files[i]);
-			filesThisLine++;
-			refresh();
-		} else{
-			filesThisLine = 1;
+		if(i < (currY + 1) * filesPerLine - 1){
 			for(int j = 0; j <= maxStringLength - my_strlen(files[i]); j++){
 				addstr(" ");
 			}
 			addstr(files[i]);
-			move(currY + 1, 0);
+		} else{
+			for(int j = 0; j <= maxStringLength - my_strlen(files[i]); j++){
+				addstr(" ");
+			}
+			addstr(files[i]);
 			currY++;
-			refresh();
+			move(currY, 0);
 		}
+		refresh();
 	}
+	fileSelect();
 }
 
 void windowResized(int sig){
@@ -41,9 +48,9 @@ void windowResized(int sig){
 
 int main(int argc, char* argv[]){
 	signal(SIGWINCH, windowResized);
-	maxStringLength = 0;
 	initscr();
 	erase();
+	refresh();
 	getmaxyx(curscr, maxY, maxX);
 	files = &argv[1];
 	numberOfFiles = argc - 1;
@@ -56,12 +63,15 @@ int main(int argc, char* argv[]){
 	}
 
 	//find number of filenames for line
-	filesPerLine = maxX / (maxStringLength + 1);
-	if( (filesPerLine * maxY) <= (argc - 1) ){
-		my_str("Screen is too small"); //screen is too small
+	filesPerLine = maxX / (maxStringLength + 1); // +1 for the space 
+	if(numberOfFiles >= filesPerLine * (maxY + 1) - 2){
+		addstr("Screen is too small"); //screen is too small
+		refresh();
+	} else {
+		selectDisplay();	
 	}
 
-	selectDisplay();
+	
 	while(1){
 
 	}
