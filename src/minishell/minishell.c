@@ -32,7 +32,7 @@ int main(int argc, char **argv){
 			my_str(currentPath);
 			my_str(" $: \0");
 			char* commandsBuff = malloc(1024);
-			bufferSet(commandsBuff);
+			memset(commandsBuff, '\0', 1024);
 			read(0, commandsBuff, 1024);
 			char** stuff = my_str2vect(commandsBuff);
 			free(commandsBuff);
