@@ -1,7 +1,7 @@
 OBJS = minishell.c
 
 CFLAGS = -g -Wall -Werror --pedantic -I../../include
-CLIBS = -L../../lib -lmy
+CLIBS = -L../../lib -lmy -lncurses
 CC = gcc
 all: $(OBJS)
 	$(CC) $(CFLAGS) minishell.c -o minishell $(CLIBS)
