@@ -1,6 +1,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <signal.h>
 #include "my.h"
@@ -116,6 +117,27 @@ int cutWord(char* command, int currPos, int buffLength, char* clipboard, int has
 	return retInt;
 }
 
+void writeCommandHistory(char** commandHistory, int commandNumber){
+	FILE * fp;
+	fp = fopen(".nsmshistory", "w+");
+	for(int i = 0; i < commandNumber; i++){
+		fprintf(fp, "%s\n", commandHistory[i]);
+	}
+}
+
+int readCommandHistory(char** commandHistory){
+	int i = 0;
+	int commandNumber = 0;
+	size_t len = 0;
+    ssize_t read;
+	FILE * fp;
+	fp = fopen(".nsmshistory", "r+");
+	while( (read = getline(&commandHistory[i], &len, fp)) != -1){
+		commandNumber++;
+	}
+	return commandNumber;
+}
+
 int main(int argc, char* argv[]){
 	initscr();
 	erase();
@@ -135,7 +157,8 @@ int main(int argc, char* argv[]){
 	    commands[i] = (char *)malloc(1024);
 	    memset(commands[i], '\0', 1024);
 	}
-	int commandCount = 0;
+	int commandCount = readCommandHistory(commands);
+	int currentCommandNumber = commandCount;
 	int commandBufferLength = 0;
 	int currentPositionBuffer = 0;
 	int x, y;
@@ -245,33 +268,65 @@ int main(int argc, char* argv[]){
 				if(currentPositionBuffer != 0){
 					currentPositionBuffer--;
 				}
+			} else if(inputChar == KEY_UP){
+				if(currentCommandNumber != 0){
+					currentCommandNumber--;
+				}
+				getyx(curscr, y, x);
+				my_strcpy(currentCommand, commands[currentCommandNumber]);
+				currentPositionBuffer = my_strlen(currentCommand);
+				commandBufferLength = my_strlen(currentCommand);
+				clearLine();
+				writePrompt();
+				addstr(currentCommand);
+				refresh();
+			} else if(inputChar == KEY_DOWN){
+				if(currentCommandNumber != commandCap){
+					currentCommandNumber++;
+				}
+				if(currentCommandNumber == commandCount){
+					memset(currentCommand, '\0', 1024);
+				}
+				getyx(curscr, y, x);
+				my_strcpy(currentCommand, commands[currentCommandNumber]);
+				currentPositionBuffer = my_strlen(currentCommand);
+				commandBufferLength = my_strlen(currentCommand);
+				clearLine();
+				writePrompt();
+				addstr(currentCommand);
+				refresh();
 			} else if(inputChar == KEY_ENTER || inputChar == 10){
+				my_strcpy(commands[commandCount], currentCommand);
+				commandCount++;
+				currentCommandNumber++;
 				getyx(curscr, y, x);
 				move(++y, 0);
 				refresh();
 				char** stuff = my_str2vect(currentCommand);
 				if(my_strcmp(stuff[0], "cd") == 0){
 					if(chdir(stuff[1]) < 0){
-						my_str("The directory \'");
-						my_str(stuff[1]);
-						my_str("\' does not exist.\n");
+						addstr("The directory \'");
+						addstr(stuff[1]);
+						addstr("\' does not exist.\n");
 					}
 					currentPath = getcwd(NULL, 0);
 				} else if(my_strcmp(stuff[0], "exit") == 0){
-					my_str("Bye");
+					writeCommandHistory(commands, commandCount);
 					exit(0);
 					return 0;
 				} else if(my_strcmp(stuff[0], "help") == 0){
-					my_str("HELP\ncd - change directory\nhelp - get this message\nexit - exit MINISHELL\n");
+					addstr("HELP\ncd - change directory\nhelp - get this message\nexit - exit NSMINISHELL\n");
 				} else {
 					if((pidChild = fork()) < 0){
 						perror("DAS BROKE\n");
 						exit(0);
 					} else if(pidChild == 0){						
 						if(execvp(stuff[0], stuff) < 0){
-							my_str("YOU DID SOMETHING WRONG\n");
+							addstr("YOU DID SOMETHING WRONG\n");
 							exit(0);	
 						}
+						endwin();
+						refresh();
 					}
 					wait(NULL);
 				}
